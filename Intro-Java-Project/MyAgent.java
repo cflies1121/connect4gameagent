@@ -3,6 +3,8 @@ import java.util.Random;
 public class MyAgent extends Agent
 {
     Random r;
+    int totalColumns = myGame.getColumnCount(); //gets the number of columns in the game
+    int totalRows = myGame.getRowCount(); //gets the number rows in the game
 
     /**
      * Constructs a new agent, giving it the game and telling it whether it is Red or Yellow.
@@ -40,26 +42,25 @@ public class MyAgent extends Agent
     {
        int move = 0;
         //System.out.println(toString() + "Moving..."); //Used for debugging
-        int iCanWin = canWin(iAmRed);
-        int theyCanWin = canWin(!iAmRed);
-        if(iCanWin >= 0) { //if I can win then plays winning move
+        int iCanWin = canWin(!iAmRed);
+        int theyCanWin = canWin(iAmRed);
+        int canMakeStratMove = canMakeStratMove(iAmRed); //these methods and the if statements have to be called in order otherwise the program doesnt work correctly.
+        if(iCanWin >= 0) { //if I can win then plays winning move. checks this first to make sure winning is priority
             move=iCanWin; 
            // System.out.println(toString() + ": I can win! Moving at " + move + "."); //Used for debuging
-           if(theyCanWin >= 0) { //if they can win plays blocking move
+        } else if(theyCanWin >= 0) { //if they can win plays blocking move. checks this next to ensure that blocking is performed.
             move=theyCanWin;
             //System.out.println(toString() + ": They can win! Moving at " + move + "."); //Used for debuging
-           }
-        } //TODO:maybe add a method to check if there is a way to stratigize piece placement....to check if there is a place that a token could be placed to get 3 in a row...
-        
-         else { // if neither then plays random move
+        } else if(canMakeStratMove >= 0) {//if I can make a strategic move and place a third token to attept winning.
+            move=canMakeStratMove;
+            //System.out.println(toString() + ": Move in a strategic way to win! Moving at " + move + "."); //Used for debuging
+        } else { // if neither then plays random move
             move=randomMove();
             //System.out.println(toString() + ": Move randomly! Moving at " + move + ".");  //Used for debuging
         }
         
         moveOnColumn(move); //executes command
     
-        
-
     }
     
     /**Determines which column and slot should be ether played to win or blocked to prevent them from winning 
@@ -70,8 +71,7 @@ public class MyAgent extends Agent
      */ 
     public int canWin(boolean red) {
         //System.out.println("  Checking can win..."); //Used for debuging
-        int totalColumns = myGame.getColumnCount(); //gets the number of columns in the game
-        int totalRows = myGame.getRowCount(); //gets the number rows in the game
+        
         for(int i = 0; i < totalColumns; i++) {
             //System.out.println("Checking column " + i + "..."); //Used for debuging
             int tei = getTopEmptyIndex(myGame.getColumn(i));
@@ -79,7 +79,7 @@ public class MyAgent extends Agent
                 //System.out.println("Column " + i + " has an empty slot at " + tei + "."); //Used for debuging
                 if(tei < totalRows - 3) { // if more than 3 tokens might be below this slot
                     //System.out.println("Checking if there's three tokens below..."); //Used for debuging
-                    if(myGame.getColumn(i).getSlot(tei+1).getIsRed()==red && myGame.getColumn(i).getSlot(tei+2).getIsRed()==red && myGame.getColumn(i).getSlot(tei+3).getIsRed()==red) { // if a column win is available here
+                    if(myGame.getColumn(i).getSlot(tei+1).getIsRed()==red && myGame.getColumn(i).getSlot(tei+2).getIsRed()==red && myGame.getColumn(i).getSlot(tei+3).getIsRed()==red) {// if a column win is available here
                         return i;
                     }
                 }
@@ -136,6 +136,65 @@ public class MyAgent extends Agent
         return -1;
     }
     /**
+     * Determines if there are two tokens available to attempt to make a strategic move and win the game
+     * 
+     * @param red checks if token is red or not
+     * @return the slot that should have a token placed in
+     */ 
+    public int canMakeStratMove(boolean red){
+        for(int i = 0; i < totalColumns; i++) {
+            //System.out.println("Checking column " + i + " for a strat move"); //Used for debuging
+            int tei = getTopEmptyIndex(myGame.getColumn(i));
+            if(tei > -1) {
+                System.out.println("Column " + i + " has an empty slot at " + tei + "."); //Used for debuging
+                if(tei < totalRows - 2) { // if more than 3 tokens might be below this slot
+                    //System.out.println("Checking if there's two tokens below..."); //Used for debuging
+                    if(myGame.getColumn(i).getSlot(tei+1).getIsRed()==red && myGame.getColumn(i).getSlot(tei+2).getIsRed()==red) {// checks if two yellow tokens are below
+                        return i;
+                    }
+                }
+                if(i < totalColumns - 2 && tei < totalRows - 2) { // if two tokens might be diagnal down to the right
+                    //System.out.println("Checking if two tokens might be diagnal down to the right..."); //Used for debuging
+                    if(checkIfEqualTwoTokens(red, myGame.getColumn(i+1).getSlot(tei+1), myGame.getColumn(i+2).getSlot(tei+2))) {
+                        return i;
+                    }
+                }
+                if(i < totalColumns && i > 1 && tei < totalRows && tei > 1) { // if two tokens might be diagnal up to the left
+                    //System.out.println("Checking if two tokens might be diagnal up to the left..."); //Used for debuging
+                    if(checkIfEqualTwoTokens(red, myGame.getColumn(i-1).getSlot(tei-1), myGame.getColumn(i-2).getSlot(tei-2))) {
+                        return i;
+                    }
+                }
+                if(i > 1 && i < totalColumns && tei < totalRows - 2 && tei >= 0) { // if two tokens might be diagnal down to the left
+                    //System.out.println("Checking if two tokens might be diagnal down to the left..."); //Used for debuging
+                    if(checkIfEqualTwoTokens(red, myGame.getColumn(i-1).getSlot(tei+1), myGame.getColumn(i-2).getSlot(tei+2))) {
+                        return i;
+                    }
+                }
+                if(i >= 0 && i < totalColumns - 2 && tei < totalRows && tei > 1) { // if two tokens might be diagnal up the right
+                    //System.out.println("Checking if two tokens might be diagnal up the right..."); //Used for debuging
+                    if(checkIfEqualTwoTokens(red, myGame.getColumn(i+2).getSlot(tei-2), myGame.getColumn(i+1).getSlot(tei-1))) {
+                        return i;
+                    }
+                }
+                if(i < totalColumns - 2) { // if two tokens might be to the right
+                    //System.out.println("Checking if there's two tokens to the right..."); //Used for debuging
+                    if(checkIfEqualTwoTokens(red, myGame.getColumn(i+1).getSlot(tei), myGame.getColumn(i+2).getSlot(tei))) {
+                        return i;
+                    }
+                }
+                if(i > 2) { // if two tokens might be to the left
+                    //System.out.println("Checking if there's two tokens to the left..."); //Used for debuging
+                    if(checkIfEqualTwoTokens(red, myGame.getColumn(i-1).getSlot(tei), myGame.getColumn(i-2).getSlot(tei))) {
+                        return i;
+                    }
+                }
+              }
+            }
+        return -1;
+    
+    }
+    /**
      * Determines the top slot that is free of any tokens
      * 
      * @param column the column number that needs to be checked for tokens.
@@ -162,6 +221,22 @@ public class MyAgent extends Agent
     public boolean checkIfEqual(boolean isRed, Connect4Slot slot1, Connect4Slot slot2, Connect4Slot slot3) {
         if(slot1.getIsFilled() && slot2.getIsFilled() && slot3.getIsFilled()) { //determines if slot is filled
             if(slot1.getIsRed()==isRed && slot2.getIsRed()==isRed && slot3.getIsRed()==isRed) {// determines if the slot is red or not
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * Checks if the slot has a red token in it. Needed only to check for two tokens instead of three.
+     *
+     * @param isRed determines if the token is red or not
+     * @param slot1 location of the first slot to check for tokens
+     * @param slot2 location of the second slot to check for tokens
+     * @return determines if the token is red or not. 
+     */
+    public boolean checkIfEqualTwoTokens(boolean isRed, Connect4Slot slot1, Connect4Slot slot2){
+        if(slot1.getIsFilled() && slot2.getIsFilled()) { //determines if slot is filled
+            if(slot1.getIsRed()==isRed && slot2.getIsRed()==isRed) {// determines if the slot is red or not
                 return true;
             }
         }
