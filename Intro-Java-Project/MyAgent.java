@@ -51,7 +51,7 @@ public class MyAgent extends Agent
            }
         } //TODO:maybe add a method to check if there is a way to stratigize piece placement....to check if there is a place that a token could be placed to get 3 in a row...
         
-        } else { // if neither then plays random move
+         else { // if neither then plays random move
             move=randomMove();
             //System.out.println(toString() + ": Move randomly! Moving at " + move + ".");  //Used for debuging
         }
