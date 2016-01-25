@@ -14,8 +14,8 @@ public class MyAgent extends Agent
      */
     public MyAgent(Connect4Game game, boolean iAmRed)
     {
-        super(game, !iAmRed);
-        r = new Random(); //Random() was here originally the last reviewer stated that it was added.
+        super(game, iAmRed);
+        r = new Random();
     }
 
     /**
@@ -40,27 +40,22 @@ public class MyAgent extends Agent
     
     public void move()
     {
-       int move = 0;
         //System.out.println(toString() + "Moving..."); //Used for debugging
-        int iCanWin = canWin(!iAmRed);
-        int theyCanWin = canWin(iAmRed);
-        int canMakeStratMove = canMakeStratMove(iAmRed); //these methods and the if statements have to be called in order otherwise the program doesnt work correctly.
-        if(iCanWin >= 0) { //if I can win then plays winning move. checks this first to make sure winning is priority
-            move=iCanWin; 
-           // System.out.println(toString() + ": I can win! Moving at " + move + "."); //Used for debuging
-        } else if(theyCanWin >= 0) { //if they can win plays blocking move. checks this next to ensure that blocking is performed.
-            move=theyCanWin;
+       int move = canWin(iAmRed);//if I can win then plays winning move. checks this first to make sure winning is priority
+        // System.out.println(toString() + ": I can win! Moving at " + move + "."); //Used for debuging
+        if (move == -1){//if they can win plays blocking move. checks this next to ensure that blocking is performed.
+            move = canWin(!iAmRed);
             //System.out.println(toString() + ": They can win! Moving at " + move + "."); //Used for debuging
-        } else if(canMakeStratMove >= 0) {//if I can make a strategic move and place a third token to attept winning.
-            move=canMakeStratMove;
-            //System.out.println(toString() + ": Move in a strategic way to win! Moving at " + move + "."); //Used for debuging
-        } else { // if neither then plays random move
-            move=randomMove();
-            //System.out.println(toString() + ": Move randomly! Moving at " + move + ".");  //Used for debuging
+            if(move == -1){//if I can make a strategic move and place a third token to attept winning.
+                move = canMakeStratMove(!iAmRed);
+                //System.out.println(toString() + ": Move in a strategic way to win! Moving at " + move + "."); //Used for debuging
+                if(move == -1){// if neither then plays random move
+                    move = randomMove();
+                    //System.out.println(toString() + ": Move randomly! Moving at " + move + ".");  //Used for debuging
+                }
+            }
         }
-        
         moveOnColumn(move); //executes command
-    
     }
     
     /**Determines which column and slot should be ether played to win or blocked to prevent them from winning 
@@ -146,7 +141,7 @@ public class MyAgent extends Agent
             //System.out.println("Checking column " + i + " for a strat move"); //Used for debuging
             int tei = getTopEmptyIndex(myGame.getColumn(i));
             if(tei > -1) {
-                System.out.println("Column " + i + " has an empty slot at " + tei + "."); //Used for debuging
+                //System.out.println("Column " + i + " has an empty slot at " + tei + "."); //Used for debuging
                 if(tei < totalRows - 2) { // if more than 3 tokens might be below this slot
                     //System.out.println("Checking if there's two tokens below..."); //Used for debuging
                     if(myGame.getColumn(i).getSlot(tei+1).getIsRed()==red && myGame.getColumn(i).getSlot(tei+2).getIsRed()==red) {// checks if two yellow tokens are below
